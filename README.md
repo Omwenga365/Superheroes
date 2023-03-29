@@ -1,52 +1,220 @@
-This is a simple Rails application for managing heroes and their powers. The application allows you to create, read, update, and delete heroes and powers, and assign powers to heroes at different levels. The application also includes validations to ensure that hero and power data is consistent and valid.
+# Rails Code Challenge - Superheroes
 
-Requirements
-Ruby version 3.1.0
-Rails version 6.1.4
-PostgreSQL database
-Setup
-To set up the application, follow these steps:
+## Project Guidelines
 
-Clone the repository to your local machine:
-bash
-Copy code
-git clone https://github.com/glenmboroki/hero-app.git
-Install dependencies:
-Copy code
-bundle install
-Set up the database:
-lua
-Copy code
-rails db:create
-rails db:migrate
-(Optional) Populate the database with seed data:
-Copy code
-rails db:seed
-Start the Rails server:
-Copy code
-rails server
-Open the application in your web browser:
-javascript
-Copy code
-http://localhost:3000
-Usage
-The application provides a simple web interface for managing heroes and powers. You can create, read, update, and delete heroes and powers using the interface. To assign powers to heroes, you can use the "Assign Power" form on the hero's detail page. Powers can be assigned at levels between 1 and 10.
+For this assessment, we'll be working on an API for tracking heroes and their superpowers.
 
-Testing
-The application includes a suite of RSpec tests to ensure that the models and controllers are working as expected. To run the tests, use the following command:
 
-Copy code
-rspec
-Deployment
-To deploy the application to a production server, you can use a platform like Heroku or AWS. Before deploying, be sure to set up your environment variables, security settings, and other deployment-related aspects.
+## Setup
 
-Contributing
-If you'd like to contribute to the application, feel free to submit a pull request. Please ensure that your code follows the existing code style and conventions, and includes appropriate tests.
+To set up this project locally, follow these steps:
 
-License
-This application is released under the MIT License.
+1. Clone this repository to your local machine using git clone https://github.com/username/repo.git
+2. cd into the project directory
+3. Run `bundle install` command to install all necessary gems
+4. Run `rails db:migrate` command to create the database tables
+5. Run `rails db:seed` command to populate the database with sample data
+6. Start the server with `rails server` command
+7. Use Postman to make requests to the API endpoints
 
 
 
+## Models
 
-# Superheroes
+You need to create the following relationships:
+
+- A `Hero` has many `Power`s through `HeroPower`
+- A `Power` has many `Hero`s through `HeroPower`
+- A `HeroPower` belongs to a `Hero` and belongs to a `Power`
+
+### Entity Relationship Diagram
+
+<img width="1012" alt="super_heroes_api" src="https://user-images.githubusercontent.com/99965020/227786235-5b63b46c-1be6-4673-a5c0-1eb24aa58485.png">
+
+
+## Validations
+
+Add validations to the `HeroPower` model:
+
+- `strength` must be one of the following values: 'Strong', 'Weak', 'Average'
+
+Add validations to the `Power` model:
+
+- `description` must be present and at least 20 characters long
+
+## Routes
+
+Set up the following routes. Make sure to return JSON data in the format
+specified along with the appropriate HTTP verb.
+
+### GET /heroes
+
+Return JSON data in the format below:
+
+```json
+[
+  { "id": 1, "name": "Kamala Khan", "super_name": "Ms. Marvel" },
+  { "id": 2, "name": "Doreen Green", "super_name": "Squirrel Girl" },
+  { "id": 3, "name": "Gwen Stacy", "super_name": "Spider-Gwen" }
+]
+```
+
+### GET /heroes/:id
+
+If the `Hero` exists, return JSON data in the format below:
+
+```json
+{
+  "id": 1,
+  "name": "Kamala Khan",
+  "super_name": "Ms. Marvel",
+  "powers": [
+    {
+      "id": 1,
+      "name": "super strength",
+      "description": "gives the wielder super-human strengths"
+    },
+    {
+      "id": 2,
+      "name": "flight",
+      "description": "gives the wielder the ability to fly through the skies at supersonic speed"
+    }
+  ]
+}
+```
+
+If the `Hero` does not exist, return the following JSON data, along with
+the appropriate HTTP status code:
+
+```json
+{
+  "error": "Hero not found"
+}
+```
+
+### GET /powers
+
+Return JSON data in the format below:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "super strength",
+    "description": "gives the wielder super-human strengths"
+  },
+  {
+    "id": 1,
+    "name": "flight",
+    "description": "gives the wielder the ability to fly through the skies at supersonic speed"
+  }
+]
+```
+
+### GET /powers/:id
+
+If the `Power` exists, return JSON data in the format below:
+
+```json
+{
+  "id": 1,
+  "name": "super strength",
+  "description": "gives the wielder super-human strengths"
+}
+```
+
+If the `Power` does not exist, return the following JSON data, along with
+the appropriate HTTP status code:
+
+```json
+{
+  "error": "Power not found"
+}
+```
+
+### PATCH /powers/:id
+
+This route should update an existing `Power`. It should accept an object with
+the following properties in the body of the request:
+
+```json
+{
+  "description": "Updated description"
+}
+```
+
+If the `Power` exists and is updated successfully (passes validations), update
+its description and return JSON data in the format below:
+
+```json
+{
+  "id": 1,
+  "name": "super strength",
+  "description": "Updated description"
+}
+```
+
+If the `Power` does not exist, return the following JSON data, along with
+the appropriate HTTP status code:
+
+```json
+{
+  "error": "Power not found"
+}
+```
+
+If the `Power` is **not** updated successfully (does not pass validations),
+return the following JSON data, along with the appropriate HTTP status code:
+
+```json
+{
+  "errors": ["validation errors"]
+}
+```
+
+### POST /hero_powers
+
+This route should create a new `HeroPower` that is associated with an
+existing `Power` and `Hero`. It should accept an object with the following
+properties in the body of the request:
+
+```json
+{
+  "strength": "Average",
+  "power_id": 1,
+  "hero_id": 3
+}
+```
+
+If the `HeroPower` is created successfully, send back a response with the data
+related to the `Hero`:
+
+```json
+{
+  "id": 1,
+  "name": "Kamala Khan",
+  "super_name": "Ms. Marvel",
+  "powers": [
+    {
+      "id": 1,
+      "name": "super strength",
+      "description": "gives the wielder super-human strengths"
+    },
+    {
+      "id": 2,
+      "name": "flight",
+      "description": "gives the wielder the ability to fly through the skies at supersonic speed"
+    }
+  ]
+}
+```
+
+If the `HeroPower` is **not** created successfully, return the following
+JSON data, along with the appropriate HTTP status code:
+
+```json
+{
+  "errors": ["validation errors"]
+}
+```
+
